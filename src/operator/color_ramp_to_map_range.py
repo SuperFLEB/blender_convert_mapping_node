@@ -21,17 +21,14 @@ class ColorRampToMapRange(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
-    def poll(cls, context) -> bool:
+    def can_show(cls, context) -> bool:
         return context.active_node.type in ('VALTORGB',)
 
     def execute(self, context) -> Set[str]:
         def warn(message):
             self.report({'WARNING'}, message)
 
-        def message(menu, _) -> None:
-            menu.layout.label(text="It worked!", icon="SOLO_ON")
-
-        node_tree = context.material.node_tree
+        node_tree = context.space_data.edit_tree
         ramp_node: ShaderNodeValToRGB = context.active_node
         range_node: ShaderNodeMapRange = node_tree.nodes.new('ShaderNodeMapRange')
         range_node.location = ramp_node.location

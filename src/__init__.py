@@ -2,12 +2,11 @@ from typing import Callable
 import bpy
 from .operator import color_ramp_to_map_range
 from .operator import map_range_to_color_ramp
-from .menu import node_context as node_context_menu
 
 if "_LOADED" in locals():
     import importlib
 
-    for mod in (color_ramp_to_map_range, map_range_to_color_ramp, node_context_menu, ):  # list all imports here
+    for mod in (color_ramp_to_map_range, map_range_to_color_ramp, ):  # list all imports here
         importlib.reload(mod)
 _LOADED = True
 
@@ -35,8 +34,8 @@ def menuitem(cls: bpy.types.Operator | bpy.types.Menu, operator_context: str = "
     if issubclass(cls, bpy.types.Operator):
         def operator_fn(self, context):
             self.layout.operator_context = operator_context
-            self.layout.operator(cls.bl_idname)
-
+            if (not hasattr(cls, 'can_show')) or cls.can_show(context):
+                self.layout.operator(cls.bl_idname)
         return operator_fn
     if issubclass(cls, bpy.types.Menu):
         def submenu_fn(self, context):
@@ -47,13 +46,14 @@ def menuitem(cls: bpy.types.Operator | bpy.types.Menu, operator_context: str = "
 
 
 # Registerable modules have a REGISTER_CLASSES list that lists all registerable classes in the module
-registerable_modules = [color_ramp_to_map_range, map_range_to_color_ramp, node_context_menu]
+registerable_modules = [color_ramp_to_map_range, map_range_to_color_ramp]
 
 classes = []
 
 menus = [
     # Node Editor Context (Right-click/W) Menu
-    ["NODE_MT_context_menu", menuitem(node_context_menu.ConvertMappingNodeSubmenu)],
+    ["NODE_MT_context_menu", menuitem(color_ramp_to_map_range.ColorRampToMapRange)],
+    ["NODE_MT_context_menu", menuitem(map_range_to_color_ramp.MapRangeToColorRamp)],
 ]
 
 
